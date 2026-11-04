@@ -1,0 +1,23 @@
+{
+	admin off
+}
+
+:{$PORT:8080} {
+	redir /r2l /r2l/ 308
+
+	# API calls go to the rust2lctrs server over Railway's private network.
+	handle /r2l/v1/* {
+		uri strip_prefix /r2l
+		reverse_proxy {$API_UPSTREAM}
+	}
+
+	handle_path /r2l/* {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+
+	handle {
+		respond 404
+	}
+}
