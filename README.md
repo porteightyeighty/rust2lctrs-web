@@ -22,7 +22,8 @@ npm install
 npm run dev
 ```
 
-Vite proxies `/v1` to `http://localhost:8080`, so no CORS setup is needed locally.
+Open <http://localhost:5173/r2l/>. Vite proxies `/r2l/v1` to `http://localhost:8080` (stripping `/r2l`), so no
+CORS setup is needed locally.
 
 ## API
 
@@ -40,10 +41,24 @@ text:
 
 | Variable | Effect |
 |---|---|
-| `VITE_API_BASE` | Base URL of the API. Empty by default, which means same origin (the dev proxy). Vite bakes it in at build time, so changing it needs a rebuild. |
+| `VITE_API_BASE` | Base URL of the API. Defaults to the app's base path (`/r2l`), so requests go to the same origin. Vite bakes it in at build time, so changing it needs a rebuild. |
 
 ## Build
 
 ```sh
 npm run build   # vue-tsc type check, then vite build to dist/
 ```
+
+## Deployment
+
+Deployed on Railway at <https://mattport.com/r2l/>. The `Dockerfile` builds `dist/` and serves it with
+Caddy (`Caddyfile`), which also reverse-proxies `/r2l/v1/*` (minus the `/r2l` prefix) to the
+rust2lctrs server over Railway's private network.
+
+| Variable | Effect |
+|---|---|
+| `PORT` | Port Caddy listens on (default `8080`). |
+| `API_UPSTREAM` | `host:port` of the rust2lctrs server, e.g. `${{r2l-api.RAILWAY_PRIVATE_DOMAIN}}:8080`. |
+
+`mattport.com` itself belongs to a separate router service, which sends `/r2l` and `/r2l/*` here
+with the path unchanged.

@@ -11,7 +11,7 @@ export interface TranslateResult {
   text: string
 }
 
-const base = import.meta.env.VITE_API_BASE ?? ''
+const base = import.meta.env.VITE_API_BASE ?? import.meta.env.BASE_URL.replace(/\/$/, '')
 
 export async function translate(
   source: string,
