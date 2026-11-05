@@ -25,3 +25,24 @@ export async function translate(
   })
   return { ok: res.ok, status: res.status, text: await res.text() }
 }
+
+export interface AnalyseResult {
+  ok: boolean
+  status: number
+  /** Cora's output on success (first line is the verdict), otherwise the server's explanation. */
+  text: string
+  /** Time Cora ran for, as reported by the server. */
+  millis: number | null
+}
+
+/** Translates `source` and runs Cora on the result (`POST /v1/analyse`). */
+export async function analyse(source: string, semantics: Semantics): Promise<AnalyseResult> {
+  const query = new URLSearchParams({ semantics })
+  const res = await fetch(`${base}/v1/analyse?${query}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: source,
+  })
+  const millis = res.headers.get('X-Analysis-Millis')
+  return { ok: res.ok, status: res.status, text: await res.text(), millis: millis ? Number(millis) : null }
+}

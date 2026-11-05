@@ -1,5 +1,5 @@
 import { computed, reactive, ref } from 'vue'
-import { translate, type Semantics, type TranslateResult } from './api'
+import { analyse, translate, type AnalyseResult, type Semantics, type TranslateResult } from './api'
 
 export const semanticsOptions: { value: Semantics; label: string; description: string }[] = [
   { value: 'debug', label: 'debug', description: 'Arithmetic overflow panics, as in a debug build.' },
@@ -63,4 +63,49 @@ export function useTranslations() {
   const loading = computed(() => pending.value > 0)
 
   return { results, translatedSource, loading, elapsed, runAll }
+}
+
+export type Verdict = 'YES' | 'MAYBE' | 'NO'
+
+/** Cora's verdict is the first word of its first non-blank line. */
+export function verdictOf(output: string): Verdict | null {
+  const first = output.split('\n').find((line) => line.trim() !== '')
+  const word = first?.trim().split(/\s+/)[0]
+  return word === 'YES' || word === 'MAYBE' || word === 'NO' ? word : null
+}
+
+/**
+ * Runs Cora on demand, one semantics at a time. Analyses are slow (seconds) and the server only
+ * runs a couple at once, so unlike translations they are never fired off for every variant.
+ */
+export function useAnalyses() {
+  const results = reactive(new Map<Semantics, AnalyseResult>())
+  const running = reactive(new Set<Semantics>())
+  let source: string | null = null
+  let generation = 0
+
+  /** Forgets every verdict; called whenever a new source is translated. */
+  function reset(next: string) {
+    generation++
+    source = next
+    results.clear()
+    running.clear()
+  }
+
+  async function run(semantics: Semantics) {
+    if (source === null || running.has(semantics)) return
+    const run = generation
+    running.add(semantics)
+    let result: AnalyseResult
+    try {
+      result = await analyse(source, semantics)
+    } catch (e) {
+      result = { ok: false, status: 0, text: e instanceof Error ? e.message : String(e), millis: null }
+    }
+    if (run !== generation) return
+    results.set(semantics, result)
+    running.delete(semantics)
+  }
+
+  return { results, running, reset, run }
 }

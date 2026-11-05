@@ -2,7 +2,14 @@
 import { computed, onMounted, ref } from 'vue'
 import type { Semantics } from '../api'
 import { samples } from '../samples'
-import { countRules, semanticsOptions, useTranslations, variantKey } from '../translations'
+import {
+  countRules,
+  semanticsOptions,
+  useAnalyses,
+  useTranslations,
+  variantKey,
+  verdictOf,
+} from '../translations'
 import CodeEditor from './CodeEditor.vue'
 
 const sampleIndex = ref(0)
@@ -12,6 +19,8 @@ const raw = ref(false)
 const copied = ref(false)
 
 const { results, translatedSource, loading, runAll } = useTranslations()
+const analyses = useAnalyses()
+const showProof = ref(false)
 
 const current = computed(() => results.get(variantKey(semantics.value, raw.value)))
 const stale = computed(
@@ -60,8 +69,51 @@ const segments = computed(() => {
 })
 
 function run() {
-  if (source.value.trim()) runAll(source.value)
+  if (!source.value.trim()) return
+  analyses.reset(source.value)
+  showProof.value = false
+  runAll(source.value)
 }
+
+const analysis = computed(() => analyses.results.get(semantics.value))
+const analysing = computed(() => analyses.running.has(semantics.value))
+const canAnalyse = computed(() => !!current.value?.ok && !stale.value && !analysing.value)
+
+function checkTermination() {
+  if (canAnalyse.value) analyses.run(semantics.value)
+}
+
+const seconds = (millis: number | null) =>
+  millis === null ? '' : ` in ${(millis / 1000).toFixed(1)} s`
+
+/** One line under the LCTRS header summarising what Cora said about the shown semantics. */
+const verdict = computed(() => {
+  const a = analysis.value
+  if (!a) return null
+  if (a.ok) {
+    const v = verdictOf(a.text)
+    if (v === 'YES')
+      return { tone: 'yes', badge: 'YES', text: `Cora proved termination${seconds(a.millis)}.`, proof: true }
+    if (v === 'NO')
+      return { tone: 'no', badge: 'NO', text: `Cora proved non-termination${seconds(a.millis)}.`, proof: true }
+    return {
+      tone: 'maybe',
+      badge: 'MAYBE',
+      text: `Cora found no proof${seconds(a.millis)}. This does not mean the program loops.`,
+      proof: true,
+    }
+  }
+  switch (a.status) {
+    case 504:
+      return { tone: 'maybe', badge: 'TIMEOUT', text: a.text, proof: false }
+    case 503:
+      return { tone: 'error', badge: 'BUSY', text: a.text, proof: false }
+    case 0:
+      return { tone: 'error', badge: 'ERROR', text: 'Could not reach the analyser.', proof: false }
+    default:
+      return { tone: 'error', badge: 'ERROR', text: `Cora failed (${a.status}).`, proof: !!a.text }
+  }
+})
 
 function pickSample() {
   source.value = samples[sampleIndex.value].source
@@ -149,13 +201,31 @@ onMounted(run)
         <span class="pane-title">LCTRS</span>
         <span v-if="stale" class="pane-meta stale" role="status">out of date, press Translate</span>
         <span v-else-if="current?.ok" class="pane-meta">{{ countRules(current.text) }} rules</span>
+        <button
+          type="button"
+          class="btn small"
+          :disabled="!canAnalyse"
+          title="Run Cora on this LCTRS"
+          @click="checkTermination"
+        >
+          {{ analysing ? 'Checking…' : analysis ? 'Check again' : 'Check termination' }}
+        </button>
         <button type="button" class="btn small" :disabled="!current?.ok" @click="copy">
           {{ copied ? 'Copied' : 'Copy' }}
         </button>
       </div>
 
+      <div v-if="verdict && current?.ok" class="verdict" :class="verdict.tone" role="status">
+        <span class="badge">{{ verdict.badge }}</span>
+        <span class="verdict-text">{{ verdict.text }}</span>
+        <button v-if="verdict.proof" type="button" class="link" @click="showProof = !showProof">
+          {{ showProof ? 'Show LCTRS' : 'Show Cora output' }}
+        </button>
+      </div>
+
+      <pre v-if="current?.ok && showProof && verdict?.proof" class="pane-body proof">{{ analysis?.text }}</pre>
       <CodeEditor
-        v-if="current?.ok"
+        v-else-if="current?.ok"
         :model-value="current.text"
         language="lctrs"
         label="LCTRS output"
