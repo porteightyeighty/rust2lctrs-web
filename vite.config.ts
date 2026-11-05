@@ -1,15 +1,15 @@
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 
-// Served under mattport.com/r2l/ in production; dev uses the same prefix so paths match.
+// Served under mattport.com/rust2lctrs/demo/ in production; dev uses the same prefix so paths match.
 export default defineConfig({
-  base: '/r2l/',
+  base: '/rust2lctrs/demo/',
   plugins: [vue()],
   server: {
     proxy: {
-      '/r2l/v1': {
+      '/rust2lctrs/demo/v1': {
         target: 'http://localhost:8080',
-        rewrite: (path) => path.replace(/^\/r2l/, ''),
+        rewrite: (path) => path.replace(/^\/rust2lctrs\/demo/, ''),
       },
     },
   },

@@ -3,15 +3,15 @@
 }
 
 :{$PORT:8080} {
-	redir /r2l /r2l/ 308
+	redir /rust2lctrs/demo /rust2lctrs/demo/ 308
 
 	# API calls go to the rust2lctrs server over Railway's private network.
-	handle /r2l/v1/* {
-		uri strip_prefix /r2l
+	handle /rust2lctrs/demo/v1/* {
+		uri strip_prefix /rust2lctrs/demo
 		reverse_proxy {$API_UPSTREAM}
 	}
 
-	handle_path /r2l/* {
+	handle_path /rust2lctrs/demo/* {
 		root * /srv
 		try_files {path} /index.html
 		file_server
