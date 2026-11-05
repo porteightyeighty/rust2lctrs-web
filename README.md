@@ -1,7 +1,8 @@
 # rust2lctrs-web
 
 A browser demo for [rust2lctrs](https://github.com/porteightyeighty/rust2lctrs): paste a small Rust
-program and see the LCTRS the translator produces.
+program, see the LCTRS the translator produces, and ask [Cora](https://github.com/hezzel/cora)
+whether it terminates.
 
 Vue 3 + TypeScript, built with Vite. No router, store or UI library.
 
@@ -36,6 +37,19 @@ text:
 | `422` | one out-of-scope diagnostic per line |
 | `400` | the syntax error message |
 | `413` | request body over 64 KiB |
+
+`POST /v1/analyse?semantics=debug|release|unbounded` translates the same way and runs Cora on the
+result. The page calls it only when *Check termination* is pressed, one semantics at a time.
+
+| Status | Body |
+|---|---|
+| `200` | Cora's output; the first line is the verdict (`YES` or `MAYBE`) |
+| `504` | Cora gave no answer within the server's time limit |
+| `503` | the analyser is busy, or the server has no Cora install |
+| `502` | Cora exited without a verdict |
+| `400` / `413` / `422` | as for `/v1/translate` |
+
+A local server without Cora answers `503`; set `CORA_BIN` (see the translator README) to try it.
 
 ## Configuration
 
