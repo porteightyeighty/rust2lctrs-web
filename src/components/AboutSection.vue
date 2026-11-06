@@ -13,14 +13,17 @@ const unsupported = 'for loops, floats, borrows, structs, enums, strings, macros
 <template>
   <section class="about">
     <div>
-      <h2>What is this?</h2>
+      <h2>Overview</h2>
       <p>
         rust2lctrs turns integer and boolean Rust functions into a Logically Constrained Term
         Rewriting System (LCTRS): rewrite rules guarded by arithmetic constraints, one per
-        program point. <a href="https://github.com/hezzel/cora">Cora</a> can then try to prove
-        the program terminates: press <em>Check termination</em> to run it on the server. YES
-        means Cora found a proof; MAYBE means it did not, which is not a proof that the program
-        loops.
+        program point. The translation adapts the C-to-LCTRS encoding of
+        <a href="https://doi.org/10.1145/3060143">Fuhs, Kop and Nishida (2017)</a>.
+        <a href="https://github.com/hezzel/cora">Cora</a> can then try to prove the program
+        terminates: press <em>Check termination</em> to run it on the server. YES means Cora found
+        a proof of termination and NO a proof of non-termination; MAYBE means it found neither,
+        which is not a proof that the program loops.
+        <a href="https://mattport.com/rust2lctrs">You can read more about it here</a>.
       </p>
     </div>
 

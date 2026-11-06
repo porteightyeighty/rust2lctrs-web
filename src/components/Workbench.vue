@@ -10,8 +10,10 @@ import {
   variantKey,
   verdictOf,
 } from '../translations'
+import AboutSection from './AboutSection.vue'
 import CodeEditor from './CodeEditor.vue'
 
+const showAbout = ref(false)
 const sampleIndex = ref(0)
 const source = ref(samples[0].source)
 const semantics = ref<Semantics>('debug')
@@ -182,6 +184,21 @@ onMounted(run)
       </svg>
     </a>
   </header>
+
+  <p class="intro">
+    Translates integer and boolean Rust functions into LCTRSs and runs Cora to try to prove
+    termination.
+    <button
+      type="button"
+      class="about-toggle"
+      :aria-expanded="showAbout"
+      @click="showAbout = !showAbout"
+    >
+      What is this?
+    </button>
+  </p>
+
+  <AboutSection v-if="showAbout" />
 
   <div class="panes">
     <section class="pane" aria-label="Rust source">

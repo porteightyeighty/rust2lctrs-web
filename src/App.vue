@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import AboutSection from './components/AboutSection.vue'
 import Workbench from './components/Workbench.vue'
 </script>
 
@@ -7,8 +6,6 @@ import Workbench from './components/Workbench.vue'
   <div class="app">
     <Workbench />
   </div>
-
-  <AboutSection />
 
   <footer class="footer">
     Matt Port · MSc project, Birkbeck, University of London · supervised by Carsten Fuhs ·
