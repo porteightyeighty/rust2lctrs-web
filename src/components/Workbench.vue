@@ -243,7 +243,7 @@ onMounted(run)
       <pre v-if="current?.ok && showProof && verdict?.proof" class="pane-body proof">{{ analysis?.text }}</pre>
       <CodeEditor
         v-else-if="current?.ok"
-        :model-value="current.text"
+        :model-value="current.text.replace(/\n$/, '')"
         language="lctrs"
         label="LCTRS output"
         readonly
