@@ -11,8 +11,7 @@ export const samples: Sample[] = [
     source: `fn sum(a: i8, b: i8) -> i8 {
     let x: i8 = a + b;
     x
-}
-`,
+}`,
   },
   {
     name: 'count down',
@@ -21,8 +20,7 @@ export const samples: Sample[] = [
     while n > 0 {
         n = n - 1;
     }
-}
-`,
+}`,
   },
   {
     name: 'even/odd',
@@ -39,8 +37,7 @@ fn is_odd(n: i8) -> bool {
         return false;
     }
     return is_even(n - 1);
-}
-`,
+}`,
   },
   {
     name: 'McCarthy 91',
@@ -50,15 +47,13 @@ fn is_odd(n: i8) -> bool {
         return mccarthy(mccarthy(n + 11));
     }
     n - 10
-}
-`,
+}`,
   },
   {
     name: 'endless while',
     origin: 'benchmarks/endless_while.rs',
     source: `fn endless_while() {
     while true {}
-}
-`,
+}`,
   },
 ]
